@@ -173,7 +173,7 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
             let delay = 2.0 * Double(NSEC_PER_SEC)
             let time = dispatch_time(DISPATCH_TIME_NOW, Int64(delay))
             dispatch_after(time, dispatch_get_main_queue()) {
-              self!.constraintStatusMessageViewLeading.constant = self!.view.frame.width + self!.view.frame.width
+              self!.constraintStatusMessageViewLeading.constant = -self!.view.frame.width
               UIView.animateWithDuration(self!.successAnimationDuration, animations: { () -> Void in
                 self!.view.layoutIfNeeded()
               })
