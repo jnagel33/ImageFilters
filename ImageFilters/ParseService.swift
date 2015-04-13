@@ -24,9 +24,13 @@ class ParseService {
     }
     post.saveInBackgroundWithBlock { (success, error) -> Void in
       if error != nil {
-        completionHandler(nil, error)
+        NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
+          completionHandler(nil, error)
+        })
       } else {
-        completionHandler(success, nil)
+        NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
+          completionHandler(success, nil)
+        })
       }
     }
   }
@@ -50,7 +54,7 @@ class ParseService {
   class func imageFromPFFile(file: PFFile, completionHandler: (UIImage?, NSError?) -> Void) {
     file.getDataInBackgroundWithBlock { (data, error) -> Void in
       if error != nil {
-        //handle error
+        completionHandler(nil, error)
       } else {
         if let image = UIImage(data: data!) {
           completionHandler(image, nil)

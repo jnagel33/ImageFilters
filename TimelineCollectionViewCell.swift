@@ -21,9 +21,7 @@ class TimelineCollectionViewCell: UICollectionViewCell {
     } else {
       ParseService.imageFromPFFile(timelineImageInfo.file, completionHandler: { [weak self] (image, error) -> Void in
         if self != nil {
-          if error != nil {
-            //handle error
-          } else {
+          if image != nil {
             if tag == self!.tag {
               timelineImageInfo.image = image
               let resizedImage = ImageResizer.resizeImage(image!, size: self!.imageView.frame.size)

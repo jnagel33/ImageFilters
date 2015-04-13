@@ -11,6 +11,42 @@ import CoreImage
 
 class FilterService {
   
+  class func pinchDistortionFilter(image: UIImage, context: CIContext) -> UIImage {
+    let filter = CIFilter(name: "CIPinchDistortion")
+    filter.setDefaults()
+    return self.createImageFromFilter(filter, image: image, context: context)
+  }
+  
+  class func dotScreenFilter(image: UIImage, context: CIContext) -> UIImage {
+    let filter = CIFilter(name: "CIDotScreen")
+    filter.setDefaults()
+    return self.createImageFromFilter(filter, image: image, context: context)
+  }
+  
+  class func lineScreenFilter(image: UIImage, context: CIContext) -> UIImage {
+    let filter = CIFilter(name: "CILineScreen")
+    filter.setDefaults()
+    return self.createImageFromFilter(filter, image: image, context: context)
+  }
+  
+  class func pixellateFilter(image: UIImage, context: CIContext) -> UIImage {
+    let filter = CIFilter(name: "CIPixellate")
+    filter.setDefaults()
+    return self.createImageFromFilter(filter, image: image, context: context)
+  }
+  
+  class func vibranceFilter(image: UIImage, context: CIContext) -> UIImage {
+    let filter = CIFilter(name: "CIVibrance")
+    filter.setDefaults()
+    return self.createImageFromFilter(filter, image: image, context: context)
+  }
+  
+  class func colorMatrixFilter(image: UIImage, context: CIContext) -> UIImage {
+    let filter = CIFilter(name: "CIColorMatrix")
+    filter.setDefaults()
+    return self.createImageFromFilter(filter, image: image, context: context)
+  }
+  
   class func photoEffectTransferFilter(image: UIImage, context: CIContext) -> UIImage {
     let filter = CIFilter(name: "CIPhotoEffectTransfer")
     filter.setDefaults()

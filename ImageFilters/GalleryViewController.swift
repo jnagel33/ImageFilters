@@ -22,18 +22,17 @@ class GalleryViewController: UIViewController, UICollectionViewDataSource, UICol
   let manager = PHCachingImageManager()
   var delegate: GalleryImageDelegate?
   var imageSizeForPrimaryView: CGSize!
-  var collectionViewCellSize = CGSize(width: 100, height: 100)
   var galleryImages: [UIImage] = [UIImage]()
   var newSizeForCells: CGSize!
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    self.collectionView.dataSource = self
+    self.collectionView.delegate = self
+    
     self.newSizeForCells = self.flowLayout.itemSize
     
     self.assets = PHAsset.fetchAssetsWithMediaType(PHAssetMediaType.Image, options: nil)
-    
-    self.collectionView.dataSource = self
-    self.collectionView.delegate = self
     
     var pinchRecognizer = UIPinchGestureRecognizer(target: self, action: "pinchOccurred:")
     self.collectionView.addGestureRecognizer(pinchRecognizer)
@@ -47,18 +46,36 @@ class GalleryViewController: UIViewController, UICollectionViewDataSource, UICol
       if (oldSize.width >= maxSizeForCell.width && sender.scale >= 1) || (oldSize.width <= minSizeForCell.width && sender.scale <= 1) {
         return
       } else {
-        self.newSizeForCells = CGSize(width: oldSize.width * sender.scale, height: oldSize.width * sender.scale)
+        var newScale: CGFloat = sender.scale
+        if sender.scale > 1 {
+          if sender.scale >= 1.50 {
+            newScale = 1.5
+          } else if sender.scale >= 1.25 {
+            newScale = 1.25
+          }
+        } else if sender.scale < 1{
+          if sender.scale <= 0.50 {
+            newScale = 0.50
+          } else if sender.scale <= 0.25 {
+            newScale = 0.25
+          }
+        }
+        self.newSizeForCells = CGSize(width: oldSize.width * newScale, height: oldSize.width * newScale)
         if self.newSizeForCells.width >= maxSizeForCell.width {
           self.newSizeForCells = CGSize(width: maxSizeForCell.width, height: maxSizeForCell.width)
         } else if self.newSizeForCells.width <= minSizeForCell.height {
           self.newSizeForCells = minSizeForCell
         }
+        self.collectionView.performBatchUpdates({ [weak self] () -> Void in
+          if self != nil {
+            self!.flowLayout.itemSize = self!.newSizeForCells
+          }
+          }, completion: nil)
       }
     } else if sender.state == UIGestureRecognizerState.Ended {
       self.collectionView.performBatchUpdates({ [weak self] () -> Void in
         if self != nil {
           self!.collectionView.reloadSections(NSIndexSet(index: 0))
-          self!.flowLayout.itemSize = self!.newSizeForCells
         }
       }, completion: nil)
     }

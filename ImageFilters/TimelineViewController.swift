@@ -55,6 +55,9 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
     }
   }
   
+  //MARK:
+  //MARK: Custom methods
+  
   func refresh(sender: AnyObject) {
     self.refreshControl.beginRefreshing()
     self.fetchTimelinePosts(self.lastRefresh)
@@ -101,22 +104,43 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
       if (oldSize.width >= maxSizeForCell.width && sender.scale >= 1) || (oldSize.width <= minSizeForCell.width && sender.scale <= 1) {
         return
       } else {
-        self.newSizeForCells = CGSize(width: oldSize.width * sender.scale, height: oldSize.width * sender.scale)
+        var newScale: CGFloat = sender.scale
+        if sender.scale > 1 {
+          if sender.scale >= 1.50 {
+            newScale = 1.5
+          } else if sender.scale >= 1.25 {
+            newScale = 1.25
+          }
+        } else if sender.scale < 1{
+          if sender.scale <= 0.50 {
+            newScale = 0.50
+          } else if sender.scale <= 0.25 {
+            newScale = 0.25
+          }
+        }
+        self.newSizeForCells = CGSize(width: oldSize.width * newScale, height: oldSize.width * newScale)
         if self.newSizeForCells.width >= maxSizeForCell.width {
           self.newSizeForCells = CGSize(width: maxSizeForCell.width, height: maxSizeForCell.width)
         } else if self.newSizeForCells.width <= minSizeForCell.height {
           self.newSizeForCells = minSizeForCell
         }
+        self.collectionView.performBatchUpdates({ [weak self] () -> Void in
+          if self != nil {
+            self!.flowLayout.itemSize = self!.newSizeForCells
+          }
+          }, completion: nil)
       }
     } else if sender.state == UIGestureRecognizerState.Ended {
       self.collectionView.performBatchUpdates({ [weak self] () -> Void in
         if self != nil {
           self!.collectionView.reloadSections(NSIndexSet(index: 0))
-          self!.flowLayout.itemSize = self!.newSizeForCells
         }
       }, completion: nil)
     }
   }
+  
+  //MARK:
+  //MARK: DeletedTimelineRecordDelegate
   
   func removeCellFromCollectionView(objectId: String) -> Void {
     for (index, info) in enumerate(timelineImageInfo) {
@@ -141,6 +165,7 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
     return cell
   }
   
+  //MARK:
   //MARK: UICollectionViewDelegate
   
   func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
@@ -148,6 +173,7 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
     self.performSegueWithIdentifier("ShowTimelineInfo", sender: self)
   }
   
+  //MARK:
   //MARK: Prepare for segue
   
   override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

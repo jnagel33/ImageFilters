@@ -27,6 +27,9 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
   @IBOutlet weak var constrantImageTrailing: NSLayoutConstraint!
   @IBOutlet weak var constraintImageTop: NSLayoutConstraint!
   @IBOutlet weak var constraintImageBottom: NSLayoutConstraint!
+  @IBOutlet weak var constraintStatusMessageViewLeading: NSLayoutConstraint!
+  @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+  @IBOutlet weak var statusLabel: UILabel!
   
   let constraintcollectionViewBottomInFilter: CGFloat = 8
   let collectionViewHeight: CGFloat = 75
@@ -36,13 +39,34 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
   
   let imageToUploadSize = CGSize(width: 600, height: 600)
   let animationDuration = 0.3
+  let successAnimationDuration = 2.0
   let thumbnailImageSize = CGSize(width: 75, height: 75)
   var currentThumbnailImage: UIImage!
   var originalThumbnailImage : UIImage!
   var currentMessage: String?
   var currentLocation: String?
   
-  let filters = [FilterService.colorInvertFilter, FilterService.photoEffectChromeFilter, FilterService.photoEffectInstantFilter, FilterService.vignetteFilter, FilterService.photoEffectFadeFilter, FilterService.sepiaToneFilter, FilterService.gaussianBlurFilter, FilterService.colorPosterizeFilter, FilterService.photoEffectNoirFilter, FilterService.photoEffectTransferFilter, FilterService.greenMonochromeFilter, FilterService.blueMonochromeFilter, FilterService.hueAdjustFilter]
+  let filters = [
+      FilterService.photoEffectTransferFilter,
+      FilterService.colorInvertFilter,
+      FilterService.photoEffectChromeFilter,
+      FilterService.photoEffectInstantFilter,
+      FilterService.vignetteFilter,
+      FilterService.photoEffectFadeFilter,
+      FilterService.sepiaToneFilter,
+      FilterService.gaussianBlurFilter,
+      FilterService.pinchDistortionFilter,
+      FilterService.dotScreenFilter,
+      FilterService.lineScreenFilter,
+      FilterService.pixellateFilter,
+      FilterService.vibranceFilter,
+      FilterService.colorMatrixFilter,
+      FilterService.colorPosterizeFilter,
+      FilterService.photoEffectNoirFilter,
+      FilterService.greenMonochromeFilter,
+      FilterService.blueMonochromeFilter,
+      FilterService.hueAdjustFilter
+  ]
   var context: CIContext!
   
   
@@ -58,6 +82,9 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
       self.collectionView.reloadData()
     }
   }
+  
+  //MARK:
+  //MARK: ViewDidLoad
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -89,6 +116,8 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     self.collectionView.dataSource = self
     self.collectionView.delegate = self
     
+    self.constraintStatusMessageViewLeading.constant = -self.view.frame.width
+    
     self.originalImageConstraintBottom = self.constraintCollectionViewBottom.constant
     self.originalImageConstraintTopLeadingTrailing = self.constraintImageLeading.constant
     self.constraintCollectionViewBottom.constant = -tabBarController!.tabBar.frame.height - collectionViewHeight
@@ -97,7 +126,7 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     self.constraintImageTop.constant = self.originalImageConstraintTopLeadingTrailing
     self.constraintImageBottom.constant = self.originalImageConstraintBottom
     
-    //MARK: UIAlertActions
+    //MARK: ViewDidLoad - UIAlertActions
     
     if UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.Camera) {
       let cameraAction = UIAlertAction(title: "Take A Picture", style: .Default) { [weak self] (alert) -> Void in
@@ -121,13 +150,34 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     
     let uploadAction = UIAlertAction(title: "Upload", style: .Default) { [weak self] (alert) -> Void in
       if self != nil {
+        self!.statusLabel.text = "Processing..."
+        self!.statusLabel.textColor = UIColor.whiteColor()
+        self!.constraintStatusMessageViewLeading.constant = 0
+        UIView.animateWithDuration(self!.animationDuration, animations: { () -> Void in
+          self!.view.layoutIfNeeded()
+        })
+        self!.activityIndicator.startAnimating()
         ParseService.uploadImageInfo(self!.primaryImageView.image!, message: self!.currentMessage, location: self!.currentLocation, size: self!.imageToUploadSize, completionHandler: { (success, error) -> Void in
           if error != nil {
-            // present error message
+            self!.statusLabel.text = "An Error Occured"
+            self!.activityIndicator.stopAnimating()
           } else {
-            // present success message
             self!.currentLocation = nil
             self!.currentMessage = nil
+            
+            self!.statusLabel.text = "Upload Successful"
+            self!.statusLabel.textColor = UIColor.greenColor()
+            self!.activityIndicator.stopAnimating()
+            self!.view.layoutIfNeeded()
+            
+            let delay = 2.0 * Double(NSEC_PER_SEC)
+            let time = dispatch_time(DISPATCH_TIME_NOW, Int64(delay))
+            dispatch_after(time, dispatch_get_main_queue()) {
+              self!.constraintStatusMessageViewLeading.constant = self!.view.frame.width + self!.view.frame.width
+              UIView.animateWithDuration(self!.successAnimationDuration, animations: { () -> Void in
+                self!.view.layoutIfNeeded()
+              })
+            }
           }
         })
       }
@@ -239,7 +289,7 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     }
   }
   
-  //MARK
+  //MARK:
   //MARK: GalleryViewDelegate
   
   func imageForPrimaryView(image: UIImage) {

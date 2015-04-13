@@ -47,10 +47,15 @@ class TimelineInfoViewController: UIViewController {
       if self != nil {
         ParseService.deleteImageRecord(self!.timelineImageInfo.objectId, completionHandler: { (success, error) -> Void in
           if error != nil {
-            //handle error
+            let alert = UIAlertController(title: "Failed to delete record", message: "Please try again", preferredStyle: .Alert)
+            let okAction = UIAlertAction(title: "Ok", style: .Default, handler: { (alert) -> Void in
+              self!.dismissViewControllerAnimated(true, completion: nil)
+            })
+            alert.addAction(okAction)
+            self!.presentViewController(alert, animated: true, completion: nil)
           } else {
-        self!.delegate!.removeCellFromCollectionView(self!.timelineImageInfo.objectId)
-        self!.navigationController?.popToRootViewControllerAnimated(true)
+            self!.delegate!.removeCellFromCollectionView(self!.timelineImageInfo.objectId)
+            self!.navigationController?.popToRootViewControllerAnimated(true)
           }
         })
       }
