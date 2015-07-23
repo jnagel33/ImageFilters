@@ -10,17 +10,17 @@ import Foundation
 
 class ParseService {
   
-  class func uploadImageInfo(image: UIImage, message: String?, location: String?, size: CGSize, completionHandler: (Bool?, NSError?) -> Void) {
+  class func uploadImageInfo(image: UIImage, title: String?, message: String?, size: CGSize, completionHandler: (Bool?, NSError?) -> Void) {
     let resizedImage = ImageResizer.resizeImage(image, size: size)
     let imageData = UIImageJPEGRepresentation(image, 1.0)
     let imageFile = PFFile(name: "post.jpg", data: imageData)
     let post = PFObject(className: "Post")
     post["imageFile"] = imageFile
+    if title != nil {
+      post["title"] = title
+    }
     if message != nil {
       post["message"] = message
-    }
-    if location != nil {
-      post["location"] = location
     }
     post.saveInBackgroundWithBlock { (success, error) -> Void in
       if error != nil {
@@ -79,6 +79,25 @@ class ParseService {
           } else {
             completionHandler(success, nil)
           }
+        })
+      }
+    }
+  }
+  class func updateImageRecord(timelineImageInfo: TimelineImageInfo, completionHandler: (Bool, NSError?) -> Void) {
+    
+    var query = PFQuery(className:"Post")
+    query.getObjectInBackgroundWithId(timelineImageInfo.objectId) {
+      (imageRecord: PFObject?, error: NSError?) -> Void in
+      if error != nil {
+      } else if let imageRecord = imageRecord {
+        if let title = timelineImageInfo.title {
+          imageRecord["title"] = title
+        }
+        if let message = timelineImageInfo.message {
+          imageRecord["message"] = message
+        }
+        imageRecord.saveInBackgroundWithBlock({ (success, error) -> Void in
+          completionHandler(success, error)
         })
       }
     }

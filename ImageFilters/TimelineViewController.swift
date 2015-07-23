@@ -31,7 +31,6 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
     let bottomBarImage = UIImage(named: "BottomBar")
     self.navigationController!.navigationBar.setBackgroundImage(topBarImage, forBarMetrics: .Default)
     self.navigationController!.navigationBar.tintColor = UIColor.whiteColor()
-    self.navigationController!.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.whiteColor()]
     self.navigationController!.navigationBar.barStyle = UIBarStyle.Black
     
     self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
@@ -68,18 +67,17 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
     ParseService.fetchPosts(date) { [weak self] (objects, error) -> Void in
       if self != nil {
         if error != nil {
-          println(error!.description)
         } else {
           for (index, object) in enumerate(objects!) {
             let objectId = object.objectId
             let imageFile = object["imageFile"] as! PFFile
+            let title = object["title"] as? String
             let message = object["message"] as? String
-            let location = object["location"] as? String
             var imageInfo = TimelineImageInfo()
             imageInfo.objectId = objectId
             imageInfo.file = imageFile
+            imageInfo.title = title
             imageInfo.message = message
-            imageInfo.location = location
             if date != nil {
               self!.timelineImageInfo.insert(imageInfo, atIndex: 0)
               self!.collectionView.insertItemsAtIndexPaths([NSIndexPath(forItem: 0, inSection: 0)])
@@ -178,9 +176,10 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
   
   override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
     if segue.identifier == "ShowTimelineInfo" {
-      let destinationController = segue.destinationViewController as! TimelineInfoViewController
-      destinationController.timelineImageInfo = self.selectedImage
-      destinationController.delegate = self
+      let destinationController = segue.destinationViewController as! UINavigationController
+      let timelineInfoVC = destinationController.topViewController as! TimelineInfoViewController
+      timelineInfoVC.timelineImageInfo = self.selectedImage
+      timelineInfoVC.delegate = self
     }
   }
 }

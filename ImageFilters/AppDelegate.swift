@@ -20,6 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     Parse.setApplicationId(kApplicationID,
       clientKey: kClientKey)
     
+
+    UINavigationBar.appearance().titleTextAttributes = [NSForegroundColorAttributeName: UIColor.whiteColor(), NSFontAttributeName: UIFont(name: "AvenirNext-Regular", size: 17)!]
+    UITabBarItem.appearance().setTitleTextAttributes([NSForegroundColorAttributeName: UIColor.whiteColor(), NSFontAttributeName: UIFont(name: "AvenirNext-Regular", size: 17)!], forState: UIControlState.Normal | UIControlState.Selected)
+    
     return true
   }
 

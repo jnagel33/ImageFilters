@@ -27,9 +27,9 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
   @IBOutlet weak var constrantImageTrailing: NSLayoutConstraint!
   @IBOutlet weak var constraintImageTop: NSLayoutConstraint!
   @IBOutlet weak var constraintImageBottom: NSLayoutConstraint!
-  @IBOutlet weak var constraintStatusMessageViewLeading: NSLayoutConstraint!
-  @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
   @IBOutlet weak var statusLabel: UILabel!
+  @IBOutlet weak var constraintStatusMessageHeight: NSLayoutConstraint!
+  @IBOutlet weak var progressView: UIProgressView!
   
   let constraintcollectionViewBottomInFilter: CGFloat = 8
   let collectionViewHeight: CGFloat = 75
@@ -38,13 +38,12 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
   let constraintBuffer: CGFloat = 50
   
   let imageToUploadSize = CGSize(width: 600, height: 600)
-  let animationDuration = 0.3
-  let successAnimationDuration = 2.0
+  let animationDuration = 0.2
   let thumbnailImageSize = CGSize(width: 75, height: 75)
   var currentThumbnailImage: UIImage!
   var originalThumbnailImage : UIImage!
+  var currentTitle: String?
   var currentMessage: String?
-  var currentLocation: String?
   
   let filters = [
       FilterService.photoEffectTransferFilter,
@@ -89,10 +88,8 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    if SLComposeViewController.isAvailableForServiceType(SLServiceTypeTwitter) {
-      let socialBarButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: "socialShare")
-      self.navigationItem.rightBarButtonItem = socialBarButton
-    }
+    let socialBarButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Action, target: self, action: "socialShare")
+    self.navigationItem.rightBarButtonItem = socialBarButton
     let messageBarButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Compose, target: self, action: "addMessage")
     self.navigationItem.leftBarButtonItem = messageBarButton
     
@@ -100,7 +97,6 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     let bottomBarImage = UIImage(named: "BottomBar")
     self.navigationController!.navigationBar.setBackgroundImage(topBarImage, forBarMetrics: .Default)
     self.navigationController!.navigationBar.tintColor = UIColor.whiteColor()
-    self.navigationController!.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.whiteColor()]
     self.navigationController!.navigationBar.barStyle = UIBarStyle.Black
     
     self.tabBarController!.tabBar.backgroundImage = bottomBarImage
@@ -116,7 +112,9 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     self.collectionView.dataSource = self
     self.collectionView.delegate = self
     
-    self.constraintStatusMessageViewLeading.constant = -self.view.frame.width
+    self.constraintStatusMessageHeight.constant = 0
+    self.statusLabel.alpha = 0
+    self.progressView.alpha = 0
     
     self.originalImageConstraintBottom = self.constraintCollectionViewBottom.constant
     self.originalImageConstraintTopLeadingTrailing = self.constraintImageLeading.constant
@@ -127,6 +125,8 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     self.constraintImageBottom.constant = self.originalImageConstraintBottom
     
     //MARK: ViewDidLoad - UIAlertActions
+    
+    self.optionsAlertController.view.tintColor = UIColor(red: 0.034, green: 0.199, blue: 0.410, alpha: 1.000)
     
     if UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceType.Camera) {
       let cameraAction = UIAlertAction(title: "Take A Picture", style: .Default) { [weak self] (alert) -> Void in
@@ -148,36 +148,36 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     }
     self.optionsAlertController.addAction(filterAction)
     
-    let uploadAction = UIAlertAction(title: "Upload", style: .Default) { [weak self] (alert) -> Void in
+    let uploadAction = UIAlertAction(title: "Upload to My Timeline", style: .Default) { [weak self] (alert) -> Void in
       if self != nil {
-        self!.statusLabel.text = "Processing..."
-        self!.statusLabel.textColor = UIColor.whiteColor()
-        self!.constraintStatusMessageViewLeading.constant = 0
-        UIView.animateWithDuration(self!.animationDuration, animations: { () -> Void in
-          self!.view.layoutIfNeeded()
+        self!.progressView.alpha = 1
+        UIView.animateWithDuration(2, animations: { () -> Void in
+          self!.progressView.setProgress(0.7, animated: true)
         })
-        self!.activityIndicator.startAnimating()
-        ParseService.uploadImageInfo(self!.primaryImageView.image!, message: self!.currentMessage, location: self!.currentLocation, size: self!.imageToUploadSize, completionHandler: { (success, error) -> Void in
+        ParseService.uploadImageInfo(self!.primaryImageView.image!, title: self!.currentTitle, message: self!.currentMessage, size: self!.imageToUploadSize, completionHandler: { (success, error) -> Void in
           if error != nil {
             self!.statusLabel.text = "An Error Occured"
-            self!.activityIndicator.stopAnimating()
           } else {
-            self!.currentLocation = nil
             self!.currentMessage = nil
+            self!.currentTitle = nil
             
-            self!.statusLabel.text = "Upload Successful"
-            self!.statusLabel.textColor = UIColor.greenColor()
-            self!.activityIndicator.stopAnimating()
-            self!.view.layoutIfNeeded()
-            
-            let delay = 2.0 * Double(NSEC_PER_SEC)
-            let time = dispatch_time(DISPATCH_TIME_NOW, Int64(delay))
-            dispatch_after(time, dispatch_get_main_queue()) {
-              self!.constraintStatusMessageViewLeading.constant = -self!.view.frame.width
-              UIView.animateWithDuration(self!.successAnimationDuration, animations: { () -> Void in
+            UIView.animateWithDuration(1.0, animations: { () -> Void in
+              self!.progressView.setProgress(1.0, animated: true)
+            }, completion: { (finished) -> Void in
+              self!.constraintStatusMessageHeight.constant = 40;
+              UIView.animateWithDuration(self!.animationDuration, delay: 0.5, options: UIViewAnimationOptions.CurveEaseInOut, animations: { () -> Void in
                 self!.view.layoutIfNeeded()
+                self!.statusLabel.alpha = 1
+                }, completion: { (finished) -> Void in
+                  self!.progressView.alpha = 0
+                  self!.progressView.setProgress(0, animated: false)
+                  self!.constraintStatusMessageHeight.constant = 0;
+                  UIView.animateWithDuration(self!.animationDuration, delay: 2.0, options: UIViewAnimationOptions.CurveEaseInOut, animations: { () -> Void in
+                    self!.view.layoutIfNeeded()
+                    self?.statusLabel.alpha = 0
+                    }, completion: nil)
               })
-            }
+            })
           }
         })
       }
@@ -196,20 +196,20 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     
     let saveMessageAction = UIAlertAction(title: "Save", style: .Default) { [weak self] (action: UIAlertAction!) -> Void in
       if self != nil {
-        let messageField = self!.messageAlertController.textFields![0] as! UITextField
-        let locationField = self!.messageAlertController.textFields![1] as! UITextField
+        let titleField = self!.messageAlertController.textFields![0] as! UITextField
+        let messageField = self!.messageAlertController.textFields![1] as! UITextField
+        self!.currentTitle = titleField.text
         self!.currentMessage = messageField.text
-        self!.currentLocation = locationField.text
       }
     }
     let cancelMessageAction = UIAlertAction(title: "Cancel", style: .Default, handler: nil)
     self.messageAlertController.addTextFieldWithConfigurationHandler {
       (textField: UITextField!) -> Void in
-      textField.placeholder = "Enter a message"
+      textField.placeholder = "Enter a title"
     }
     self.messageAlertController.addTextFieldWithConfigurationHandler {
       (textField: UITextField!) -> Void in
-      textField.placeholder = "Enter your current location"
+      textField.placeholder = "Enter a message"
     }
     self.messageAlertController.addAction(saveMessageAction)
     self.messageAlertController.addAction(cancelMessageAction)
@@ -259,10 +259,11 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
   }
   
   func addMessage() {
-    let messageTextField = self.messageAlertController.textFields![0] as! UITextField
-    let locationTextField = self.messageAlertController.textFields![1] as! UITextField
+    self.messageAlertController.view.tintColor = UIColor(red: 0.034, green: 0.199, blue: 0.410, alpha: 1.000)
+    let titleTextField = self.messageAlertController.textFields![0] as! UITextField
+    let messageTextField = self.messageAlertController.textFields![1] as! UITextField
+    titleTextField.text = self.currentTitle
     messageTextField.text = self.currentMessage
-    locationTextField.text = self.currentLocation
     self.presentViewController(self.messageAlertController, animated: true) {[weak self] () -> Void in
     }
   }
@@ -276,9 +277,18 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
   }
  
   func socialShare() {
-    let composeShareController = SLComposeViewController(forServiceType: SLServiceTypeTwitter)
-    composeShareController.addImage(self.currentImage)
-    self.presentViewController(composeShareController, animated: true, completion: nil)
+    var sharingItems = [AnyObject]()
+    sharingItems.append(self.currentImage)
+    if let title = self.currentTitle {
+      sharingItems.append(title)
+    }
+    if let message = self.currentMessage {
+      sharingItems.append(" - \(message)")
+    }
+    
+    let activityViewController = UIActivityViewController(activityItems: sharingItems, applicationActivities: nil)
+    activityViewController.view.tintColor = UIColor(red: 0.034, green: 0.199, blue: 0.410, alpha: 1.000)
+    self.presentViewController(activityViewController, animated: true, completion: nil)
   }
   
   override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

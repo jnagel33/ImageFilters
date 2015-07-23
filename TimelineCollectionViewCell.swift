@@ -25,7 +25,13 @@ class TimelineCollectionViewCell: UICollectionViewCell {
             if tag == self!.tag {
               timelineImageInfo.image = image
               let resizedImage = ImageResizer.resizeImage(image!, size: self!.imageView.frame.size)
+              self!.imageView.alpha = 0
               self!.imageView.image = resizedImage
+              self!.imageView.transform = CGAffineTransformMakeScale(0.3, 0.3)
+              UIView.animateWithDuration(0.5, animations: { () -> Void in
+                self!.imageView.transform = CGAffineTransformMakeScale(1.0, 1.0)
+                self!.imageView.alpha = 1
+              })
             }
           }
         }
