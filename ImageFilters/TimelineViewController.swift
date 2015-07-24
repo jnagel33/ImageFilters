@@ -33,7 +33,6 @@ class TimelineViewController: UIViewController, UICollectionViewDataSource, UICo
     self.navigationController!.navigationBar.tintColor = UIColor.whiteColor()
     self.navigationController!.navigationBar.barStyle = UIBarStyle.Black
     
-    self.refreshControl.attributedTitle = NSAttributedString(string: "Pull to refresh")
     self.refreshControl.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
     self.collectionView.addSubview(refreshControl)
     
