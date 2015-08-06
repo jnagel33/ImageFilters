@@ -16,6 +16,7 @@ class TimelineInfoViewController: UIViewController {
 
   @IBOutlet weak var imageButton: UIButton!
   @IBOutlet weak var messageButton: UIButton!
+  var activityController: UIActivityViewController?
   
   var timelineImageInfo: TimelineImageInfo!
   var delegate: DeletedTimelineRecordDelegate?
@@ -128,9 +129,16 @@ class TimelineInfoViewController: UIViewController {
       sharingItems.append(" - \(message)")
     }
     
-    let activityViewController = UIActivityViewController(activityItems: sharingItems, applicationActivities: nil)
-    activityViewController.view.tintColor = UIColor(red: 0.034, green: 0.199, blue: 0.410, alpha: 1.000)
-    self.presentViewController(activityViewController, animated: true, completion: nil)
+    self.activityController = UIActivityViewController(activityItems: sharingItems, applicationActivities: nil)
+    self.activityController!.view.tintColor = UIColor(red: 0.034, green: 0.199, blue: 0.410, alpha: 1.000)
+    self.activityController!.popoverPresentationController?.sourceRect = CGRect(x: self.view.frame.size.width - 50, y: self.view.frame.size.height - 125, width: 1, height: 1)
+    self.activityController!.popoverPresentationController?.sourceView = self.view
+    self.presentViewController(self.activityController!, animated: true, completion: nil)
+  }
+  
+  override func didRotateFromInterfaceOrientation(fromInterfaceOrientation: UIInterfaceOrientation) {
+    self.activityController!.popoverPresentationController?.sourceRect = CGRect(x: self.view.frame.size.width - 50, y: self.view.frame.size.height - 125, width: 1, height: 1)
+    self.activityController!.popoverPresentationController?.sourceView = self.view
   }
   
 }

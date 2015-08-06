@@ -288,6 +288,9 @@ class PhotoViewController: UIViewController, UIImagePickerControllerDelegate, UI
     
     let activityViewController = UIActivityViewController(activityItems: sharingItems, applicationActivities: nil)
     activityViewController.view.tintColor = UIColor(red: 0.034, green: 0.199, blue: 0.410, alpha: 1.000)
+    
+    activityViewController.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
+    activityViewController.popoverPresentationController?.sourceView = self.view
     self.presentViewController(activityViewController, animated: true, completion: nil)
   }
   
