@@ -27,16 +27,30 @@ class GalleryViewController: UIViewController, UICollectionViewDataSource, UICol
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    self.collectionView.dataSource = self
-    self.collectionView.delegate = self
     
     self.newSizeForCells = self.flowLayout.itemSize
-    
-    self.assets = PHAsset.fetchAssetsWithMediaType(PHAssetMediaType.Image, options: nil)
     
     var pinchRecognizer = UIPinchGestureRecognizer(target: self, action: "pinchOccurred:")
     self.collectionView.addGestureRecognizer(pinchRecognizer)
   }
+  
+  override func viewDidAppear(animated: Bool) {
+    if PHPhotoLibrary.authorizationStatus() != PHAuthorizationStatus.Authorized {
+      PHPhotoLibrary.requestAuthorization { (status) -> Void in
+        if status == PHAuthorizationStatus.Authorized {
+          self.assets = PHAsset.fetchAssetsWithMediaType(PHAssetMediaType.Image, options: nil)
+          self.collectionView.dataSource = self
+          self.collectionView.delegate = self
+          self.collectionView.reloadData()
+        }
+      };
+    } else {
+      self.collectionView.dataSource = self
+      self.collectionView.delegate = self
+      self.assets = PHAsset.fetchAssetsWithMediaType(PHAssetMediaType.Image, options: nil)
+    }
+  }
+  
   
   func pinchOccurred(sender: UIPinchGestureRecognizer) {
     var maxSizeForCell = self.collectionView.frame.size
@@ -85,7 +99,7 @@ class GalleryViewController: UIViewController, UICollectionViewDataSource, UICol
   //MARK: UICollectionViewDataSource
   
   func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    return assets.count
+    return self.assets.count
   }
   
   func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -125,4 +139,6 @@ class GalleryViewController: UIViewController, UICollectionViewDataSource, UICol
       }
     }
   }
+  
+  
 }

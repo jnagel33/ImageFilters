@@ -15,6 +15,8 @@ class ParseService {
     let imageData = UIImageJPEGRepresentation(image, 1.0)
     let imageFile = PFFile(name: "post.jpg", data: imageData)
     let post = PFObject(className: "Post")
+    let deviceUDID = UIDevice.currentDevice().identifierForVendor.UUIDString;
+    post["user"] = deviceUDID
     post["imageFile"] = imageFile
     if title != nil {
       post["title"] = title
@@ -40,6 +42,8 @@ class ParseService {
     if let lastItemDate = date {
       query.whereKey("createdAt", greaterThan: lastItemDate)
     }
+    let deviceUDID = UIDevice.currentDevice().identifierForVendor.UUIDString;
+    query.whereKey("user", equalTo: deviceUDID)
     query.orderByDescending("createdAt")
     query.findObjectsInBackgroundWithBlock { (objects, error) -> Void in
       if error != nil {
